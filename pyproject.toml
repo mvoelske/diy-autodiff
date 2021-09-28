@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "diy-autodiff"
+version = "0.1.0"
+description = ""
+authors = ["Michael Völske <mvoelske@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+tqdm = "^4.62.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+pytest-watch = "^4.2.0"
+ipykernel = "^6.4.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
