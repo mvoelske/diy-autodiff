@@ -1,6 +1,8 @@
 import pytest
 from diy_autodiff import __version__
 from diy_autodiff import autodiff as ad
+from diy_autodiff import training as tr
+from diy_autodiff import models as md
 
 
 def test_version():
@@ -26,7 +28,7 @@ def test_linear_regression():
     xs = [(1, 1.5), (1.5, -1)]
     ys = [0, 1]
     
-    def L(w):
+    def loss(w):
         wterms = [ad.Variable(wi) for wi in w]
         err_terms = []
         for x, cx in zip(xs, ys):
@@ -35,7 +37,7 @@ def test_linear_regression():
             err_terms.append(diff * diff)
         return sum(err_terms[1:], err_terms[0]), wterms
     
-    lterm, [w0, w1, w2] = L((-1, 1.5, 0.5))
+    lterm, [w0, w1, w2] = loss((-1, 1.5, 0.5))
 
     assert lterm.compute() == 1.625
     d = ad.grad(lterm, [w0, w1, w2])
@@ -50,7 +52,7 @@ def test_logistic_regression():
     xs = [(1, 1.5), (1.5, -1)]
     ys = [0, 1]
     
-    def L(w):
+    def loss(w):
         wterms = [ad.Variable(wi) for wi in w]
         err_terms = []
         for x, cx in zip(xs, ys):
@@ -59,7 +61,7 @@ def test_logistic_regression():
             err_terms.append(diff * diff)
         return sum(err_terms[1:], err_terms[0]), wterms
     
-    lterm, [w0, w1, w2] = L((-1, 1.5, 0.5))
+    lterm, [w0, w1, w2] = loss((-1, 1.5, 0.5))
 
     assert lterm.compute() == pytest.approx(0.71, abs=0.01)
 
@@ -70,23 +72,39 @@ def test_logistic_regression():
     assert d[w2] == pytest.approx(.54, abs=.01)
 
 
-def test_igd():
-    xs = [(0,0), (1,1), (2,2), (3,3), (4,4)]
-    cs = [1, 2, 3, 4, 5]
-    ws = [-1, 2 ,3]
+def test_bgd_models_api():
+    data = tr.as_training_set(
+        [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4]],
+        [[1], [2], [3], [4], [5]]
+    )
 
-    # change to constants / variables
-    xs = [tuple(ad.Constant(xi) for xi in x) for x in xs]
-    cs = [ad.Constant(c) for c in cs]
-    ws = [ad.Variable(w) for w in ws]
+    model = md.Perceptron(in_dim=2, out_dim=1)
+    model.initialize()
 
-    # define linear regression model with rss loss
-    loss = ad.Constant(0)
-    for x, cx in zip(xs, cs):
-        y = sum((wi*xi for wi, xi in zip(ws, (ad.Constant(1),) + x)), ad.Constant(0))
-        loss += ad.Square(cx - y)
+    loss = tr.RSSLoss()
 
-    ad.gradient_descent(loss, ws, 0.01, 1000)
+    tr.batch_gradient_descent(model, loss, data, 1000, 0.01, None, data)
 
+    ws = model.parameters()
     assert ws[0].value == pytest.approx(1, abs=0.001)
     assert ws[1].value + ws[2].value == pytest.approx(1, abs=0.001)
+
+def test_bgd_xor_mlp():
+    data = tr.as_training_set(
+        [[0,0], [0, 1], [1, 0], [1, 1]],
+        [[0], [1], [1], [0]]
+    )
+
+    model = md.MultiLayerPerceptron(2, [3], 1, [ad.ReLU, ad.Sigmoid])
+    model.initialize()
+
+    loss = tr.RSSLoss()
+
+    tr.batch_gradient_descent(model, loss, data, 1000, 0.01)
+
+    y = [model(x)[0].compute() for (x, _) in data]
+
+    assert y[0] < 0.5
+    assert y[1] > 0.5
+    assert y[2] > 0.5
+    assert y[3] < 0.5

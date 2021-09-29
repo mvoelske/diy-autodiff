@@ -1,8 +1,5 @@
-#%%
 import math
 from abc import abstractmethod
-
-import tqdm # type: ignore
 
 class BaseTerm:
     def __init__(self, value):
@@ -23,6 +20,12 @@ class BaseTerm:
 
     def __sub__(self, o):
         return Addition(self, Negation(o))
+
+    def __pow__(self, p):
+        if p == 2:
+            return Square(self)
+        else:
+            raise RuntimeError("powers other than 2 not yet implemented")
 
 class Variable(BaseTerm):
     def __init__(self, value):
@@ -90,11 +93,23 @@ class BinaryOperation(BaseOperation):
     def operands(self):
         return (self.a, self.b)
 
+class Identity(UnaryOperation):
+    def compute(self):
+        return self.a.compute()
+    def derive(self):
+        return (1, )
+
 class Negation(UnaryOperation):
     def compute(self):
         return -self.a.compute()
     def derive(self):
         return (-1,)
+
+class Log(UnaryOperation):
+    def compute(self):
+        return math.log(self.a.compute())
+    def derive(self):
+        return 1 / self.a.compute()
 
 class Addition(BinaryOperation):
     def compute(self):
@@ -124,6 +139,12 @@ class Square(UnaryOperation):
     def derive(self):
         return (2 * self.a.compute(),)
 
+class ReLU(UnaryOperation):
+    def compute(self):
+        return max(0, self.a.compute())
+    def derive(self):
+        return (1 if self.a.compute() >= 0 else 0,)
+
 ########################################################################
 
 def grad(f: BaseOperation, vars: list[Variable]) -> dict[Variable, float]:
@@ -151,20 +172,3 @@ def grad(f: BaseOperation, vars: list[Variable]) -> dict[Variable, float]:
     return grads
 
 ########################################################################
-
-def gradient_descent(
-    training_loss: UnaryOperation,
-    params: list[Variable],
-    eta: float, iterations: int,
-    validation_loss: UnaryOperation = None, val_every: int = None):
-
-    pb = tqdm.tqdm(range(iterations), desc="GD", leave=True)
-
-    for i in pb:
-        g = grad(training_loss, params)
-        for p in params:
-            p.update(p.value - eta * g[p])
-        if validation_loss is not None and i % val_every == 0:
-            pb.set_postfix({'val.loss': validation_loss.compute()})
-
-# %%
