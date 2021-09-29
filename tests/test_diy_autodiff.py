@@ -73,7 +73,7 @@ def test_logistic_regression():
 
 
 def test_bgd_models_api():
-    data = tr.as_training_set(
+    data = tr.as_dataset(
         [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4]],
         [[1], [2], [3], [4], [5]]
     )
@@ -90,7 +90,7 @@ def test_bgd_models_api():
     assert ws[1].value + ws[2].value == pytest.approx(1, abs=0.001)
 
 def test_bgd_xor_mlp():
-    data = tr.as_training_set(
+    data = tr.as_dataset(
         [[0,0], [0, 1], [1, 0], [1, 1]],
         [[0], [1], [1], [0]]
     )

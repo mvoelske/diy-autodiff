@@ -21,6 +21,12 @@ class BaseTerm:
     def __sub__(self, o):
         return Addition(self, Negation(o))
 
+    def __neg__(self):
+        return Negation(self)
+
+    def __truediv__(self, o):
+        return self * Reciprocal(o)
+
     def __pow__(self, p):
         if p == 2:
             return Square(self)
@@ -109,7 +115,22 @@ class Log(UnaryOperation):
     def compute(self):
         return math.log(self.a.compute())
     def derive(self):
+        return (1 / self.a.compute(),)
+
+class Exp(UnaryOperation):
+    def compute(self):
+        return math.exp(self.a.compute())
+    def derive(self):
+        return (self.compute(),)
+
+class Reciprocal(UnaryOperation):
+    def compute(self):
         return 1 / self.a.compute()
+    def derive(self):
+        a = self.a.compute()
+        if a == 0:
+            return (0,)
+        return (- a**(-2),)
 
 class Addition(BinaryOperation):
     def compute(self):
