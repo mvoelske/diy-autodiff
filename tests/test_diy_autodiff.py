@@ -81,7 +81,7 @@ def test_bgd_models_api():
     model = md.Perceptron(in_dim=2, out_dim=1)
     model.initialize()
 
-    loss = tr.RSSLoss()
+    loss = tr.SquaredLoss()
 
     tr.batch_gradient_descent(model, loss, data, 1000, 0.01, None, data)
 
@@ -95,12 +95,13 @@ def test_bgd_xor_mlp():
         [[0], [1], [1], [0]]
     )
 
-    model = md.MultiLayerPerceptron(2, [3], 1, [ad.ReLU, ad.Sigmoid])
+    model = md.MultiLayerPerceptron(2, [4], 1, [ad.ReLU, ad.Sigmoid])
     model.initialize()
 
-    loss = tr.RSSLoss()
 
-    tr.batch_gradient_descent(model, loss, data, 1000, 0.01)
+    loss = tr.SquaredLoss()
+
+    tr.batch_gradient_descent(model, loss, data, 1000, 0.05)
 
     y = [model(x)[0].compute() for (x, _) in data]
 

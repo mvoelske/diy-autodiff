@@ -7,7 +7,7 @@ With inspiration from [Baydin2018]_.
 
 There's no support for vectorization or GPUs. Performance will be terrible.
 
-See `demo.py <demo.py>`_ for a usage example.
+See `the tests <tests>`_ for api usage, and `demo.py <demo.py>`_ for a more complex example.
 
 
 .. [Baydin2018] Baydin, Atilim Gunes, Barak A. Pearlmutter, Alexey Andreyevich Radul, and Jeffrey Mark Siskind. 2018. “Automatic Differentiation in Machine Learning: A Survey.” Journal of Machine Learning Research 18 (153): 1–43. https://www.jmlr.org/papers/volume18/17-468/17-468.pdf

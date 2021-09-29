@@ -13,11 +13,9 @@ iris = load_iris()
 xs = iris['data']
 cs = iris['target']
 
-# learn to separate only the first two classes
-cs_ind = cs < 2
-xs = xs[cs_ind]
-cs = cs[cs_ind]
-
+# 1-vs-rest for simplicity
+cs = (cs == 0).astype(int)
+target_names = '+'.join(iris['target_names'][[1,2]]), iris['target_names'][0]
 
 n_test = len(xs) // 9
 
@@ -48,10 +46,9 @@ model = models.MultiLayerPerceptron(
 
 loss = training.SquaredLoss()
 
-model.initialize(3)
+model.initialize(1)
 
-## show initial model performance
-
+## to demonstrate that something actually happens, show performance of randomized weights first
 print(72*'*')
 print('Before Training')
 print('===============')
@@ -64,20 +61,17 @@ def print_eval(dataset, label):
     print('-'*len(label))
     print(classification_report(cs, ys,
           zero_division=0,
-          target_names=iris['target_names'][:2]))
+          target_names=target_names))
 
 print_eval(train, 'training set')
 print_eval(test, 'test set')
 
 # train model
-
 training.batch_gradient_descent(
     model, loss, train,
-    iterations=100, eta=0.01, batch_size=20,
+    iterations=200, eta=0.02, batch_size=20,
     validation_set=test, validate_every=5,
 )
-
-# show final model performance
 
 print(72*'*')
 print('After Training')

@@ -44,7 +44,7 @@ class Perceptron(Model):
         r = random.Random(seed)
         for row in self._w:
             for w in row:
-                w.update(r.normalvariate(0, 1))
+                w.update(r.normalvariate(0, .1))
 
 
 class MultiLayerPerceptron(Model):

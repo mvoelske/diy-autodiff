@@ -61,22 +61,22 @@ class BaseOperation(BaseTerm):
         ...
 
     @abstractmethod
-    def derive(self) -> tuple[float]:
+    def derive(self) -> tuple[float, ...]:
         """Computes the gradient of this operation with respect to its
         operand(s).
 
         Returns:
-            tuple[float]: length corresponds to the number of operands, and the
+            tuple[float, ...]: length corresponds to the number of operands, and the
                 i-th element is the gradient with respect to the i-th operand
         """
         ...
 
     @abstractmethod
-    def operands(self) -> tuple[BaseTerm]:
+    def operands(self) -> tuple[BaseTerm, ...]:
         """Return the operand(s) in order.
 
         Returns:
-            tuple[BaseTerm]: this operation's operand(s)
+            tuple[BaseTerm, ...]: this operation's operand(s)
         """
         ...
 
@@ -182,6 +182,7 @@ def grad(f: BaseOperation, vars: list[Variable]) -> dict[Variable, float]:
     grads = {v:0.0 for v in vars}
 
     ops, derivs = f.operands(), f.derive()
+    assert len(ops) == len(derivs)
     
     for op, d in zip(ops, derivs):
         if op in grads:

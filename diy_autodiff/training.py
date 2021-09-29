@@ -19,13 +19,6 @@ class SquaredLoss(LossFunction):
             l += (ci - yi)**2
         return l
 
-class SoftmaxCrossEntropyLoss(LossFunction):
-    def __call__(self, c: list[Constant], y: list[BaseTerm]) -> BaseOperation:
-        import math
-        # an optimisation to avoid gratuitous gradient passes through here
-        log_sum = Constant(math.log(sum((math.exp(yi.compute()) for yi in y))))
-        return -sum((ci * (yi - log_sum) for ci, yi in zip(c, y)), Constant(0))
-
 ########################################################################
 
 def batch_gradient_descent(
