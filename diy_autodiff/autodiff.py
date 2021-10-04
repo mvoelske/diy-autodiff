@@ -61,7 +61,7 @@ class BaseOperation(BaseTerm):
         ...
 
     @abstractmethod
-    def derive(self) -> tuple[float, ...]:
+    def gradients(self) -> tuple[float, ...]:
         """Computes the gradient of this operation with respect to its
         operand(s).
 
@@ -102,31 +102,31 @@ class BinaryOperation(BaseOperation):
 class Identity(UnaryOperation):
     def compute(self):
         return self.a.compute()
-    def derive(self):
+    def gradients(self):
         return (1, )
 
 class Negation(UnaryOperation):
     def compute(self):
         return -self.a.compute()
-    def derive(self):
+    def gradients(self):
         return (-1,)
 
 class Log(UnaryOperation):
     def compute(self):
         return math.log(self.a.compute())
-    def derive(self):
+    def gradients(self):
         return (1 / self.a.compute(),)
 
 class Exp(UnaryOperation):
     def compute(self):
         return math.exp(self.a.compute())
-    def derive(self):
+    def gradients(self):
         return (self.compute(),)
 
 class Reciprocal(UnaryOperation):
     def compute(self):
         return 1 / self.a.compute()
-    def derive(self):
+    def gradients(self):
         a = self.a.compute()
         if a == 0:
             return (0,)
@@ -135,13 +135,13 @@ class Reciprocal(UnaryOperation):
 class Addition(BinaryOperation):
     def compute(self):
         return self.a.compute() + self.b.compute()
-    def derive(self):
+    def gradients(self):
         return (1, 1)
 
 class Multiplication(BinaryOperation):
     def compute(self):
         return self.a.compute() * self.b.compute()
-    def derive(self):
+    def gradients(self):
         return (self.b.compute(), self.a.compute())
 
 class Sigmoid(UnaryOperation):
@@ -150,20 +150,20 @@ class Sigmoid(UnaryOperation):
         return 1/(1 + math.exp(- z))
     def compute(self):
         return Sigmoid._s(self.a.compute())
-    def derive(self):
+    def gradients(self):
         a = self.a.compute()
         return (Sigmoid._s(a) * (1 - Sigmoid._s(a)),)
 
 class Square(UnaryOperation):
     def compute(self):
         return self.a.compute() ** 2
-    def derive(self):
+    def gradients(self):
         return (2 * self.a.compute(),)
 
 class ReLU(UnaryOperation):
     def compute(self):
         return max(0, self.a.compute())
-    def derive(self):
+    def gradients(self):
         return (1 if self.a.compute() >= 0 else 0,)
 
 ########################################################################
@@ -181,7 +181,7 @@ def grad(f: BaseOperation, vars: list[Variable]) -> dict[Variable, float]:
     """
     grads = {v:0.0 for v in vars}
 
-    ops, derivs = f.operands(), f.derive()
+    ops, derivs = f.operands(), f.gradients()
     assert len(ops) == len(derivs)
     
     for op, d in zip(ops, derivs):
